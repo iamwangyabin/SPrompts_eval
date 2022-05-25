@@ -1,4 +1,4 @@
-# SPrompts
+# S-Prompts
 Evaluation code for S-Prompts
 "S-Prompts Learning with Pre-trained Transformers: An Occam’s Razor for Domain Incremental Learning"
 
