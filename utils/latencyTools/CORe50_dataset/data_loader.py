@@ -207,12 +207,75 @@ class CORE50(object):
             for idx in test_idx_list:
                 test_paths.append(os.path.join(self.root, self.paths[idx]))
 
+            # test imgs
+            test_x = self.get_batch_from_paths(test_paths).astype(np.float32)
+
         test_y = self.labels[scen][run][-1]
         test_y = np.asarray(test_y, dtype=np.int)
 
-        return test_paths, test_y
+        return test_x, test_y
 
     next = __next__  # python2.x compatibility.
+
+    @staticmethod
+    def get_batch_from_paths(paths, compress=False, snap_dir='',
+                             on_the_fly=True, verbose=False):
+        """ Given a number of abs. paths it returns the numpy array
+        of all the images. """
+
+        # Getting root logger
+        log = logging.getLogger('mylogger')
+
+        # If we do not process data on the fly we check if the same train
+        # filelist has been already processed and saved. If so, we load it
+        # directly. In either case we end up returning x and y, as the full
+        # training set and respective labels.
+        num_imgs = len(paths)
+        hexdigest = md5(''.join(paths).encode('utf-8')).hexdigest()
+        log.debug("Paths Hex: " + str(hexdigest))
+        loaded = False
+        x = None
+        file_path = None
+
+        if compress:
+            file_path = snap_dir + hexdigest + ".npz"
+            if os.path.exists(file_path) and not on_the_fly:
+                loaded = True
+                with open(file_path, 'rb') as f:
+                    npzfile = np.load(f)
+                    x, y = npzfile['x']
+        else:
+            x_file_path = snap_dir + hexdigest + "_x.bin"
+            if os.path.exists(x_file_path) and not on_the_fly:
+                loaded = True
+                with open(x_file_path, 'rb') as f:
+                    x = np.fromfile(f, dtype=np.uint8) \
+                        .reshape(num_imgs, 128, 128, 3)
+
+        # Here we actually load the images.
+        if not loaded:
+            # Pre-allocate numpy arrays
+            x = np.zeros((num_imgs, 128, 128, 3), dtype=np.uint8)
+
+            for i, path in enumerate(paths):
+                if verbose:
+                    print("\r" + path + " processed: " + str(i + 1), end='')
+                x[i] = np.array(Image.open(path))
+
+            if verbose:
+                print()
+
+            if not on_the_fly:
+                # Then we save x
+                if compress:
+                    with open(file_path, 'wb') as g:
+                        np.savez_compressed(g, x=x)
+                else:
+                    x.tofile(snap_dir + hexdigest + "_x.bin")
+
+        assert (x is not None), 'Problems loading data. x is None!'
+
+        return x
 
 
 

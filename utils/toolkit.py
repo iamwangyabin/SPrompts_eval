@@ -76,3 +76,9 @@ def accuracy_domain(y_pred, y_true, increment=10):
     all_acc = {}
     all_acc['total'] = np.around((y_pred%345 == y_true%345).sum()*100 / len(y_true), decimals=2)
     return all_acc
+
+def accuracy_core50(y_pred, y_true):
+    assert len(y_pred) == len(y_true), 'Data length error.'
+    all_acc = {}
+    all_acc['total'] = np.around((y_pred == y_true).sum()*100 / len(y_true), decimals=2)
+    return all_acc

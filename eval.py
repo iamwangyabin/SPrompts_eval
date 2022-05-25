@@ -1,4 +1,3 @@
-import json
 import os
 import argparse
 from PIL import Image
@@ -9,20 +8,15 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
+
 from utils.core50_data_loader import CORE50
-from utils.toolkit import accuracy_binary, accuracy_domain
+from utils.toolkit import accuracy_binary, accuracy_domain, accuracy_core50
 
 def setup_parser():
     parser = argparse.ArgumentParser(description='Reproduce of multiple continual learning algorthms.')
-
-    # parser.add_argument('--resume', type=str, default='/home/wangyabin/workspace/pycil_forCIL/logs/test_1993_coop_gan_resnet50_ganfake_2_2_2022-05-05-23:15:12/task_4.pth', help='resume model')
-    parser.add_argument('--resume', type=str, default='/home/wangyabin/workspace/pycil_forCIL/logs/test_1993_coop_core50_coop_cifar100_vit_10_10_2022-05-07-13:10:31/task_7.pth', help='resume model')
-    # parser.add_argument('--resume', type=str, default='./domainnet.pth', help='resume model')
+    parser.add_argument('--resume', type=str, default='', help='resume model')
     parser.add_argument('--dataroot', type=str, default='/home/wangyabin/workspace/DeepFake_Data/CL_data/', help='data path')
-    # parser.add_argument('--datatype', type=str, default='deepfake', help='data type')
-    # parser.add_argument('--datatype', type=str, default='domainnet', help='data type')
     parser.add_argument('--datatype', type=str, default='core50', help='data type')
-
     return parser
 
 class DummyDataset(Dataset):
@@ -55,7 +49,7 @@ class DummyDataset(Dataset):
                         images.append(os.path.join(root_, cls, '1_fake', imgname))
                         labels.append(1 + 2 * id)
         elif data_type == "domainnet":
-            self.data_root = "/home/wangyabin/workspace/datasets/domainnet"
+            self.data_root = data_path
             self.image_list_root = self.data_root
             self.domain_names = ["clipart","infograph","painting","quickdraw", "real","sketch",]
             image_list_paths = [os.path.join(self.image_list_root, d + "_" + "test" + ".txt") for d in self.domain_names]
@@ -68,9 +62,9 @@ class DummyDataset(Dataset):
                 images.append(os.path.join(self.data_root, item[0]))
                 labels.append(item[1])
         elif data_type == "core50":
-            self.dataset_generator = CORE50(root='/home/wangyabin/workspace/core50/data/core50_128x128', scenario="ni")
-            test_x, test_y = self.dataset_generator.get_test_set()
-            pass
+            self.dataset_generator = CORE50(root=data_path, scenario="ni")
+            images, labels = self.dataset_generator.get_test_set()
+            labels = labels.tolist()
         else:
             pass
 
@@ -93,7 +87,6 @@ class DummyDataset(Dataset):
 
 args = setup_parser().parse_args()
 model = torch.load(args.resume)
-
 device = model._device
 test_dataset = DummyDataset(args.dataroot, args.datatype)
 test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=8)
@@ -137,6 +130,6 @@ if args.datatype == 'deepfake':
 elif args.datatype == 'domainnet':
     print(accuracy_domain(y_pred.T[0], y_true))
 elif args.datatype == 'core50':
-    print(accuracy_domain(y_pred.T[0], y_true))
+    print(accuracy_core50(y_pred.T[0], y_true))
 
 
