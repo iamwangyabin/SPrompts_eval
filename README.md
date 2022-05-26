@@ -2,7 +2,7 @@
 Evaluation code for S-Prompts
 "S-Prompts Learning with Pre-trained Transformers: An Occam’s Razor for Domain Incremental Learning"
 
-#Enviroment setup
+# Enviroment setup
 Create a conda env:
 ```
 conda env create -f environments.yaml
@@ -35,7 +35,7 @@ DeepFake:
 https://arxiv.org/abs/2205.05467
 ```
 
-After unzipping the file, the file structure should be as shown below.
+After unzipping downloaded files, the file structure should be as shown below.
 ```
 DeepFake_Data
 ├── biggan
@@ -47,8 +47,6 @@ DeepFake_Data
 │   ├── train
 │   └── val
 ├── san
-│   ├── 0_real
-│   ├── 1_fake
 │   ├── test
 │   ├── train
 │   └── val
@@ -95,7 +93,7 @@ domainnet
 
 ```
 core50
-├── core50_128x128
+└── core50_128x128
     ├── labels.pkl
     ├── LUP.pkl
     ├── paths.pkl

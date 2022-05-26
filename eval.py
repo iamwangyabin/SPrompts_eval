@@ -87,7 +87,8 @@ class DummyDataset(Dataset):
 
 args = setup_parser().parse_args()
 model = torch.load(args.resume)
-device = model._device
+device = "cuda:0"
+model = model.to(device)
 test_dataset = DummyDataset(args.dataroot, args.datatype)
 test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=8)
 
@@ -108,15 +109,9 @@ for _, (path, inputs, targets) in enumerate(test_loader):
     targets = targets.to(device)
 
     with torch.no_grad():
-        if isinstance(model._network, nn.DataParallel):
-            feature = model._network.module.extract_vector(inputs)
-        else:
-            feature = model._network.extract_vector(inputs)
+        feature = model.extract_vector(inputs)
         selection = torch.tensor(neigh.predict(feature.detach().cpu().numpy())).to(device)
-        if isinstance(model._network, nn.DataParallel):
-            outputs = model._network.module.interface(inputs, selection)
-        else:
-            outputs = model._network.interface(inputs, selection)
+        outputs = model.interface(inputs, selection)
     predicts = torch.topk(outputs, k=2, dim=1, largest=True, sorted=True)[1]
     y_pred.append(predicts.cpu().numpy())
     y_true.append(targets.cpu().numpy())

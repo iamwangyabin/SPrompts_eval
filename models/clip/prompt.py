@@ -1,13 +1,8 @@
-import os.path as osp
-import threadpoolctl
-
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-from torch.cuda.amp import GradScaler, autocast
 
-from models.ganfake.clip import clip
-from models.ganfake.clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
+from models.clip import clip
+from models.clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
 _tokenizer = _Tokenizer()
 
@@ -179,81 +174,7 @@ class PromptLearner(nn.Module):
 
 class cfgc(object):
     backbonename = 'ViT-B/16'
-    NCTX = 8  #default16
+    NCTX = 16
     CTXINIT = ''
     CSC = False
     CLASS_TOKEN_POSITION = 'end'
-
-class COOPNet(nn.Module):
-    def __init__(self):
-        super(COOPNet, self).__init__()
-        cfg = cfgc()
-        self.cfg = cfg
-        clip_model = load_clip_to_cpu(cfg)
-        self.clip_model = clip_model
-        self.prompt_learner = PromptLearner(cfg, ['real', 'fake'], clip_model)
-        self.tokenized_prompts = self.prompt_learner.tokenized_prompts
-
-
-        self.image_encoder = clip_model.visual
-        self.text_encoder = TextEncoder(clip_model)
-        self.logit_scale = clip_model.logit_scale
-        self.dtype = clip_model.dtype
-
-        self.prompt_list = []
-
-        self.prompt_pool = nn.ModuleList([
-            PromptLearner(self.cfg, ['real', 'fake'], self.clip_model),
-            PromptLearner(self.cfg, ['real', 'fake'], self.clip_model),
-            PromptLearner(self.cfg, ['real', 'fake'], self.clip_model),
-            PromptLearner(self.cfg, ['real', 'fake'], self.clip_model),
-            PromptLearner(self.cfg, ['real', 'fake'], self.clip_model),
-            PromptLearner(self.cfg, ['real', 'fake'], self.clip_model),
-            PromptLearner(self.cfg, ['real', 'fake'], self.clip_model)
-        ])
-
-        self.instance_prompt = nn.ModuleList([
-            nn.Linear(768, 10, bias=False),
-            nn.Linear(768, 10, bias=False),
-            nn.Linear(768, 10, bias=False),
-            nn.Linear(768, 10, bias=False),
-            nn.Linear(768, 10, bias=False),
-            nn.Linear(768, 10, bias=False),
-            nn.Linear(768, 10, bias=False),
-        ])
-
-        self.instance_keys = nn.Linear(768, 10, bias=False)
-
-        self.numtask = 0
-
-    def extract_vector(self, image):
-        image_features = self.image_encoder(image.type(self.dtype))
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-
-        return image_features
-
-    def interface(self, image, selection):
-        instance_batch = torch.stack([i.weight for i in self.instance_prompt], 0)[selection, :, :]
-        image_features = self.image_encoder(image.type(self.dtype), instance_batch)
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-        logits = []
-        for prompt in self.prompt_pool:
-            tokenized_prompts = prompt.tokenized_prompts
-            text_features = self.text_encoder(prompt(), tokenized_prompts)
-            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
-            logit_scale = self.logit_scale.exp()
-            logits.append(logit_scale * image_features @ text_features.t())
-        logits = torch.cat(logits,1)
-        selectedlogit = []
-        for idx, ii in enumerate(selection):
-            selectedlogit.append(logits[idx][2*ii:2*ii+2])
-        selectedlogit = torch.stack(selectedlogit)
-        return selectedlogit
-
-
-from models.base import BaseLearner
-
-class coop_ganfake(BaseLearner):
-    pass
-
-
