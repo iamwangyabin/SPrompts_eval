@@ -31,7 +31,7 @@ DomainNet:
 http://ai.bu.edu/M3SDA/
 CORe50:
 https://vlomonaco.github.io/core50/index.html#dataset
-CDDB (needs to ask the authors for the deepfake data):
+CDDB (need to ask the authors for the deepfake data):
 https://arxiv.org/abs/2205.05467
 ```
 
