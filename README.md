@@ -11,15 +11,15 @@ conda env create -f environments.yaml
 
 Pretrained Model for DomainNet:
 ```angular2html
-https://drive.google.com/file/d/1X_v6MiVDoI5vzJSwQ8FpsFjfuUxaMFNj/view?usp=sharing
+https://drive.google.com/file/d/1qDWMnxyVXNCRCmNls1lrB3k4UleON_w4/view?usp=sharing
 ```
 Pretrained Model for CORe50:
 ```angular2html
-https://drive.google.com/file/d/1ulYKXNX9NZWLgukvsCBenIhw6DYYEZIp/view?usp=sharing
+https://drive.google.com/file/d/1HD7auESA89zOxdDUN0hFeAVPvOPWUAgV/view?usp=sharing
 ```
 Pretrained Model for CDDB:
 ```angular2html
-https://drive.google.com/file/d/1DLIX9MbEqGFARSU5jN7ANOoTBnNuFf2D/view?usp=sharing
+https://drive.google.com/file/d/1MXoBpVnGe_1aHQRLL9-VcdkDoTfeXOiM/view?usp=sharing
 ```
 
 
@@ -117,11 +117,11 @@ core50
 
 [//]: # (```)
 
-[//]: # (python eval.py --resume ./deepfake.pth --dataroot /home/wangyabin/workspace/DeepFake_Data/CL_data/ --datatype deepfake )
+[//]: # (python eval.py --resume ./deepfake.pth --dataroot ../DeepFake_Data/CL_data/ --datatype deepfake )
 
-[//]: # (python eval.py --resume ./domainnet.pth --dataroot /home/wangyabin/workspace/datasets/domainnet --datatype domainnet )
+[//]: # (python eval.py --resume ./domainnet.pth --dataroot ../datasets/domainnet --datatype domainnet )
 
-[//]: # (python eval.py --resume ./core50.pth --dataroot /home/wangyabin/workspace/core50/data/core50_128x128 --datatype core50 )
+[//]: # (python eval.py --resume ./core50.pth --dataroot ../core50/data/core50_128x128 --datatype core50 )
 
 [//]: # (```)
 ```

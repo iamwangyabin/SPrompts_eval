@@ -34,8 +34,6 @@ class DummyDataset(Dataset):
         if data_type == "deepfake":
             subsets = ["gaugan", "biggan", "wild", "whichfaceisreal", "san"]
             multiclass = [0,0,0,0,0]
-            # subsets = ["gaugan", "biggan", "cyclegan", "imle", "deepfake", "crn", "wild", "glow", "stargan_gf", "stylegan", "whichfaceisreal", "san"]
-            # multiclass = [0,0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0]
             for id, name in enumerate(subsets):
                 root_ = os.path.join(data_path, name, 'val')
                 # sub_classes = ['']
@@ -103,6 +101,9 @@ Y = np.concatenate(Y,0)
 neigh = KNeighborsClassifier(n_neighbors=1, metric='l1')
 neigh.fit(X, Y)
 
+selectionsss = []
+from collections import Counter
+
 y_pred, y_true = [], []
 for _, (path, inputs, targets) in enumerate(test_loader):
     inputs = inputs.to(device)
@@ -110,7 +111,9 @@ for _, (path, inputs, targets) in enumerate(test_loader):
 
     with torch.no_grad():
         feature = model.extract_vector(inputs)
-        selection = torch.tensor(neigh.predict(feature.detach().cpu().numpy())).to(device)
+        selection = neigh.predict(feature.detach().cpu().numpy())
+        # selectionsss.extend(selection)
+        selection = torch.tensor(selection).to(device)
         outputs = model.interface(inputs, selection)
     predicts = torch.topk(outputs, k=2, dim=1, largest=True, sorted=True)[1]
     y_pred.append(predicts.cpu().numpy())
@@ -119,7 +122,8 @@ for _, (path, inputs, targets) in enumerate(test_loader):
 y_pred = np.concatenate(y_pred)
 y_true = np.concatenate(y_true)
 
-
+result = Counter(selectionsss)
+print(result)
 if args.datatype == 'deepfake':
     print(accuracy_binary(y_pred.T[0], y_true))
 elif args.datatype == 'domainnet':
