@@ -31,35 +31,12 @@ DomainNet:
 http://ai.bu.edu/M3SDA/
 CORe50:
 https://vlomonaco.github.io/core50/index.html#dataset
-DeepFake:
+CDDB (needs to ask the authors for the deepfake data):
 https://arxiv.org/abs/2205.05467
 ```
 
 After unzipping downloaded files, the file structure should be as shown below.
-```
-DeepFake_Data
-├── biggan
-│   ├── test
-│   ├── train
-│   └── val
-├── gaugan
-│   ├── test
-│   ├── train
-│   └── val
-├── san
-│   ├── test
-│   ├── train
-│   └── val
-├── whichfaceisreal
-│   ├── test
-│   ├── train
-│   └── val
-├── wild
-│   ├── test
-│   ├── train
-│   └── val
-... ...
-```
+
 
 ```angular2html
 domainnet
@@ -110,22 +87,46 @@ core50
     └── s9
 
 ```
-
+```
+DeepFake_Data
+├── biggan
+│   ├── test
+│   ├── train
+│   └── val
+├── gaugan
+│   ├── test
+│   ├── train
+│   └── val
+├── san
+│   ├── test
+│   ├── train
+│   └── val
+├── whichfaceisreal
+│   ├── test
+│   ├── train
+│   └── val
+├── wild
+│   ├── test
+│   ├── train
+│   └── val
+... ...
+```
 
 
 # Launching experiments
 
 [//]: # (```)
 
-[//]: # (python eval.py --resume ./deepfake.pth --dataroot ../DeepFake_Data/CL_data/ --datatype deepfake )
-
 [//]: # (python eval.py --resume ./domainnet.pth --dataroot ../datasets/domainnet --datatype domainnet )
 
 [//]: # (python eval.py --resume ./core50.pth --dataroot ../core50/data/core50_128x128 --datatype core50 )
 
+[//]: # (python eval.py --resume ./deepfake.pth --dataroot ../DeepFake_Data/CL_data/ --datatype deepfake )
+
 [//]: # (```)
 ```
-python eval.py --resume ./deepfake.pth --dataroot [YOUR PATH]/DeepFake_Data/ --datatype deepfake 
 python eval.py --resume ./domainnet.pth --dataroot [YOUR PATH]/domainnet --datatype domainnet 
 python eval.py --resume ./core50.pth --dataroot [YOUR PATH]/core50_128x128 --datatype core50 
+python eval.py --resume ./deepfake.pth --dataroot [YOUR PATH]/DeepFake_Data/ --datatype deepfake 
+
 ```
