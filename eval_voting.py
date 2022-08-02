@@ -13,18 +13,11 @@ from torch.utils.data import Dataset, DataLoader
 from utils.core50_data_loader import CORE50
 from utils.toolkit import accuracy_binary, accuracy_domain, accuracy_core50
 
-"""
-python eval.py --resume ./deepfake.pth --dataroot ~/workspace/datasets/DeepFake_Data/CL_data/ --datatype deepfake --til
-"""
-
-
 def setup_parser():
     parser = argparse.ArgumentParser(description='Reproduce of multiple continual learning algorthms.')
     parser.add_argument('--resume', type=str, default='', help='resume model')
     parser.add_argument('--dataroot', type=str, default='/home/wangyabin/workspace/DeepFake_Data/CL_data/', help='data path')
     parser.add_argument('--datatype', type=str, default='core50', help='data type')
-    parser.add_argument('--random_select', action='store_true', help='use random select')
-    parser.add_argument('--til', action='store_true', help='use groundtruth task identification')
     return parser
 
 class DummyDataset(Dataset):
@@ -96,20 +89,8 @@ model = torch.load(args.resume)
 device = "cuda:0"
 model = model.to(device)
 test_dataset = DummyDataset(args.dataroot, args.datatype)
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=8)
+test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True, num_workers=8)
 
-X,Y = [], []
-
-for id, task_centers in enumerate(model.all_keys):
-    X.append(task_centers.detach().cpu().numpy())
-    Y.append(np.array([id]*len(task_centers)))
-
-X = np.concatenate(X,0)
-Y = np.concatenate(Y,0)
-neigh = KNeighborsClassifier(n_neighbors=1, metric='l1')
-neigh.fit(X, Y)
-
-selectionsss = []
 
 y_pred, y_true = [], []
 for _, (path, inputs, targets) in enumerate(test_loader):
@@ -117,32 +98,28 @@ for _, (path, inputs, targets) in enumerate(test_loader):
     targets = targets.to(device)
 
     with torch.no_grad():
-        feature = model.extract_vector(inputs)
-        selection = neigh.predict(feature.detach().cpu().numpy())
-        if args.random_select:
-            selection = np.random.randint(0, Y.max(), selection.shape)
-        if args.til:
-            selection = (targets/345).cpu().long().numpy()
-            # selection = (targets/50).cpu().long().numpy()
-            # selection = (targets/2).cpu().long().numpy()
+        # for ii in
+        preds = []
+        for ii in range(len(model.all_keys)):
+            selection = torch.ones_like(targets).to(device) * ii
+            outputs = model.interface(inputs, selection)
+            preds.append(outputs.max(1)[1])
+    preds = torch.stack(preds).T
 
-        selectionsss.extend(selection)
-
-        selection = torch.tensor(selection).to(device)*0
-
-        outputs = model.interface(inputs, selection)
-    predicts = torch.topk(outputs, k=2, dim=1, largest=True, sorted=True)[1]
+    predicts = torch.mode(preds, dim=1, keepdim=False)[0]
+    import pdb;pdb.set_trace()
     y_pred.append(predicts.cpu().numpy())
     y_true.append(targets.cpu().numpy())
 
 y_pred = np.concatenate(y_pred)
 y_true = np.concatenate(y_true)
-print(sum(selectionsss==((y_true/345).astype(int)))/(len(y_true)))
+
+# import pdb;pdb.set_trace()
 if args.datatype == 'deepfake':
-    print(accuracy_binary(y_pred.T[0], y_true))
+    print(accuracy_binary(y_pred.T, y_true))
 elif args.datatype == 'domainnet':
-    print(accuracy_domain(y_pred.T[0], y_true))
+    print(accuracy_domain(y_pred.T, y_true))
 elif args.datatype == 'core50':
-    print(accuracy_core50(y_pred.T[0], y_true))
+    print(accuracy_core50(y_pred.T, y_true))
 
 

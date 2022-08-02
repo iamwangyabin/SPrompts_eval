@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import torch
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 
 def count_parameters(model, trainable=False):
@@ -70,6 +71,25 @@ def accuracy_binary(y_pred, y_true, increment=2):
         task_acc.append(np.around(((y_pred[idxes]%2) == (y_true[idxes]%2)).sum()*100 / len(idxes), decimals=2))
     all_acc['task_wise'] = sum(task_acc)/len(task_acc)
     return all_acc
+
+
+def multimetric_binary(y_pred, y_true, increment=2):
+    assert len(y_pred) == len(y_true), 'Data length error.'
+    all_f1 = {}
+    all_precision = {}
+    all_recall = {}
+    for class_id in range(0, np.max(y_true), increment):
+        idxes = np.where(np.logical_and(y_true >= class_id, y_true < class_id + increment))[0]
+        label = '{}-{}'.format(str(class_id).rjust(2, '0'), str(class_id+increment-1).rjust(2, '0'))
+        all_f1[label] = f1_score(y_true[idxes]%2, y_pred[idxes]%2, average='binary')
+        all_precision[label] = precision_score(y_true[idxes]%2, y_pred[idxes]%2, average='binary')
+        all_recall[label] = recall_score(y_true[idxes]%2, y_pred[idxes]%2, average='binary')
+
+    return all_f1, all_precision, all_recall
+
+
+
+
 
 def accuracy_domain(y_pred, y_true, increment=10):
     assert len(y_pred) == len(y_true), 'Data length error.'

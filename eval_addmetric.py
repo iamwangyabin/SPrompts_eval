@@ -1,3 +1,8 @@
+"""
+For reviewer
+Add more metrics: F1_score, Precision, Recall
+"""
+
 import os
 import argparse
 from PIL import Image
@@ -12,19 +17,13 @@ from torch.utils.data import Dataset, DataLoader
 
 from utils.core50_data_loader import CORE50
 from utils.toolkit import accuracy_binary, accuracy_domain, accuracy_core50
-
-"""
-python eval.py --resume ./deepfake.pth --dataroot ~/workspace/datasets/DeepFake_Data/CL_data/ --datatype deepfake --til
-"""
-
+from utils.toolkit import multimetric_binary
 
 def setup_parser():
     parser = argparse.ArgumentParser(description='Reproduce of multiple continual learning algorthms.')
     parser.add_argument('--resume', type=str, default='', help='resume model')
     parser.add_argument('--dataroot', type=str, default='/home/wangyabin/workspace/DeepFake_Data/CL_data/', help='data path')
     parser.add_argument('--datatype', type=str, default='core50', help='data type')
-    parser.add_argument('--random_select', action='store_true', help='use random select')
-    parser.add_argument('--til', action='store_true', help='use groundtruth task identification')
     return parser
 
 class DummyDataset(Dataset):
@@ -98,6 +97,9 @@ model = model.to(device)
 test_dataset = DummyDataset(args.dataroot, args.datatype)
 test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=8)
 
+# print(sum(p.numel() for p in model.text_encoder.parameters()))
+
+
 X,Y = [], []
 
 for id, task_centers in enumerate(model.all_keys):
@@ -119,17 +121,8 @@ for _, (path, inputs, targets) in enumerate(test_loader):
     with torch.no_grad():
         feature = model.extract_vector(inputs)
         selection = neigh.predict(feature.detach().cpu().numpy())
-        if args.random_select:
-            selection = np.random.randint(0, Y.max(), selection.shape)
-        if args.til:
-            selection = (targets/345).cpu().long().numpy()
-            # selection = (targets/50).cpu().long().numpy()
-            # selection = (targets/2).cpu().long().numpy()
-
         selectionsss.extend(selection)
-
-        selection = torch.tensor(selection).to(device)*0
-
+        selection = torch.tensor(selection).to(device)
         outputs = model.interface(inputs, selection)
     predicts = torch.topk(outputs, k=2, dim=1, largest=True, sorted=True)[1]
     y_pred.append(predicts.cpu().numpy())
@@ -137,9 +130,16 @@ for _, (path, inputs, targets) in enumerate(test_loader):
 
 y_pred = np.concatenate(y_pred)
 y_true = np.concatenate(y_true)
-print(sum(selectionsss==((y_true/345).astype(int)))/(len(y_true)))
+print(sum(selectionsss==((y_true/50).astype(int)))/(len(y_true)))
+
+
+
 if args.datatype == 'deepfake':
-    print(accuracy_binary(y_pred.T[0], y_true))
+    f1, pre, recal = multimetric_binary(y_pred.T[0], y_true)
+    print(f1)
+    print(pre)
+    print(recal)
+
 elif args.datatype == 'domainnet':
     print(accuracy_domain(y_pred.T[0], y_true))
 elif args.datatype == 'core50':

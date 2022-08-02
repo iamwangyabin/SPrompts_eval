@@ -282,6 +282,5 @@ if __name__ == "__main__":
         print("----------- batch {0} -------------".format(i))
         print("train_x shape: {}, train_y shape: {}"
               .format(train_x.shape, train_y.shape))
-        import pdb;pdb.set_trace()
         # use the data
         pass
