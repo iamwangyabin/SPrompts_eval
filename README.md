@@ -9,17 +9,19 @@ conda env create -f environments.yaml
 ```
 # Getting pretrained models
 
-Pretrained Model for DomainNet:
+Pretrained Model for CDDB:
 ```angular2html
-https://drive.google.com/file/d/1qDWMnxyVXNCRCmNls1lrB3k4UleON_w4/view?usp=sharing
+https://drive.google.com/file/d/1MXoBpVnGe_1aHQRLL9-VcdkDoTfeXOiM/view?usp=sharing
 ```
+
 Pretrained Model for CORe50:
 ```angular2html
 https://drive.google.com/file/d/1HD7auESA89zOxdDUN0hFeAVPvOPWUAgV/view?usp=sharing
 ```
-Pretrained Model for CDDB:
+
+Pretrained Model for DomainNet:
 ```angular2html
-https://drive.google.com/file/d/1MXoBpVnGe_1aHQRLL9-VcdkDoTfeXOiM/view?usp=sharing
+https://drive.google.com/file/d/1qDWMnxyVXNCRCmNls1lrB3k4UleON_w4/view?usp=sharing
 ```
 
 
@@ -27,16 +29,61 @@ https://drive.google.com/file/d/1MXoBpVnGe_1aHQRLL9-VcdkDoTfeXOiM/view?usp=shari
 # Preparing data
 Please refer to the following links to download and prepare data. 
 ```
-DomainNet:
-http://ai.bu.edu/M3SDA/
+CDDB:
+https://github.com/Coral79/CDDB
 CORe50:
 https://vlomonaco.github.io/core50/index.html#dataset
-CDDB (need to ask the authors for the deepfake data):
-https://arxiv.org/abs/2205.05467
+DomainNet:
+http://ai.bu.edu/M3SDA/
+
 ```
 
 After unzipping downloaded files, the file structure should be as shown below.
 
+```
+DeepFake_Data
+├── biggan
+│   ├── test
+│   ├── train
+│   └── val
+├── gaugan
+│   ├── test
+│   ├── train
+│   └── val
+├── san
+│   ├── test
+│   ├── train
+│   └── val
+├── whichfaceisreal
+│   ├── test
+│   ├── train
+│   └── val
+├── wild
+│   ├── test
+│   ├── train
+│   └── val
+... ...
+```
+
+```
+core50
+└── core50_128x128
+    ├── labels.pkl
+    ├── LUP.pkl
+    ├── paths.pkl
+    ├── s1
+    ├── s10
+    ├── s11
+    ├── s2
+    ├── s3
+    ├── s4
+    ├── s5
+    ├── s6
+    ├── s7
+    ├── s8
+    └── s9
+
+```
 
 ```angular2html
 domainnet
@@ -68,65 +115,24 @@ domainnet
 ... ...
 ```
 
-```
-core50
-└── core50_128x128
-    ├── labels.pkl
-    ├── LUP.pkl
-    ├── paths.pkl
-    ├── s1
-    ├── s10
-    ├── s11
-    ├── s2
-    ├── s3
-    ├── s4
-    ├── s5
-    ├── s6
-    ├── s7
-    ├── s8
-    └── s9
 
-```
-```
-DeepFake_Data
-├── biggan
-│   ├── test
-│   ├── train
-│   └── val
-├── gaugan
-│   ├── test
-│   ├── train
-│   └── val
-├── san
-│   ├── test
-│   ├── train
-│   └── val
-├── whichfaceisreal
-│   ├── test
-│   ├── train
-│   └── val
-├── wild
-│   ├── test
-│   ├── train
-│   └── val
-... ...
-```
+
 
 
 # Launching experiments
 
 [//]: # (```)
 
-[//]: # (python eval.py --resume ./domainnet.pth --dataroot ../datasets/domainnet --datatype domainnet )
+[//]: # (python eval.py --resume ./deepfake.pth --dataroot ../DeepFake_Data/CL_data/ --datatype deepfake )
 
 [//]: # (python eval.py --resume ./core50.pth --dataroot ../core50/data/core50_128x128 --datatype core50 )
 
-[//]: # (python eval.py --resume ./deepfake.pth --dataroot ../DeepFake_Data/CL_data/ --datatype deepfake )
+[//]: # (python eval.py --resume ./domainnet.pth --dataroot ../datasets/domainnet --datatype domainnet )
 
 [//]: # (```)
 ```
-python eval.py --resume ./domainnet.pth --dataroot [YOUR PATH]/domainnet --datatype domainnet 
-python eval.py --resume ./core50.pth --dataroot [YOUR PATH]/core50_128x128 --datatype core50 
 python eval.py --resume ./deepfake.pth --dataroot [YOUR PATH]/DeepFake_Data/ --datatype deepfake 
+python eval.py --resume ./core50.pth --dataroot [YOUR PATH]/core50_128x128 --datatype core50 
+python eval.py --resume ./domainnet.pth --dataroot [YOUR PATH]/domainnet --datatype domainnet 
 
 ```
